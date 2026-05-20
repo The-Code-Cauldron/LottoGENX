@@ -124,7 +124,7 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'I
       <div id="visitor-badge" style="font-family:var(--mono);font-size:8px;color:var(--muted);text-align:right;padding-top:2px;opacity:0;transition:opacity .4s"></div>
     </div>
     <div class="hdr-title">LottoGENX</div>
-    <div class="hdr-sub">1,057 Draws · Oct 2015–May 2026 · 6,342 Ball Appearances · Merged Dataset</div>
+    <div class="hdr-sub">1,057+ Draws · Oct 2015–Present · Merged Dataset · <span id="data-date" style="color:var(--cyan)">Updating…</span></div>
     <div class="hdr-note">lotto_results.csv (Oct 2015–Mar 2020 · 441 draws) merged with 2020–2026 analysis (616 draws) · Pair analysis anchored to 2020–2026 era · Pre-Oct 2015 draws excluded (1-49 format incompatible)</div>
   </div>
   <div class="ns-bar">
@@ -951,14 +951,114 @@ function setNums(){
   document.getElementById('panel').innerHTML=RENDERS[current]();
 }
 
+// ── LATEST DRAWS ─────────────────────────────────────────────────────────────
+let liveData = null; // populated on init from /api/latest
+
+function renderLatest() {
+  if (!liveData) {
+    return `<div style="text-align:center;padding:40px 20px">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px">Loading latest results…</div>
+      <div style="font-size:9px;color:var(--muted)">Fetching from Merseyworld. Should take under 5 seconds.</div>
+    </div>`;
+  }
+
+  const { draws, newCount, lastDate, totalDraws, source } = liveData;
+
+  const statusColor = source === 'merseyworld' ? '#22c55e' : source === 'db' ? '#60a5fa' : '#f59e0b';
+  const statusLabel = source === 'merseyworld' ? 'Live — Merseyworld' : source === 'db' ? 'Database cache' : 'Base dataset only';
+
+  const drawCards = draws.map(d => {
+    const userMatches = USER.filter(n => d.nums.includes(n));
+    const bonusMatch  = USER.includes(d.bonus);
+    const matchCount  = userMatches.length + (bonusMatch ? 1 : 0);
+    const matchColor  = matchCount >= 4 ? '#dc2626' : matchCount >= 3 ? '#f59e0b' : matchCount >= 2 ? '#60a5fa' : 'var(--muted)';
+    const isNew       = d.date > '2026-05-17';
+
+    const balls = d.nums.map(n => {
+      const u = USER.includes(n);
+      return `<div style="width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:12px;background:${u ? 'linear-gradient(135deg,#dc2626,#f97316)' : heatCol(FREQ[n]||60).bg};color:${u ? '#fff' : heatCol(FREQ[n]||60).fg};border:${u ? '2px solid rgba(255,255,255,.4)' : 'none'};box-shadow:${u ? '0 0 8px rgba(220,38,38,.5)' : 'none'}">${n}</div>`;
+    }).join('');
+
+    const bonusBall = d.bonus ? `<div style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:11px;background:${USER.includes(d.bonus) ? 'rgba(139,92,246,.3)' : 'rgba(255,255,255,.04)'};color:${USER.includes(d.bonus) ? '#a78bfa' : 'var(--muted)'};border:1px dashed ${USER.includes(d.bonus) ? '#8b5cf6' : 'var(--border)'}">${d.bonus}</div>` : '';
+
+    return `<div style="background:var(--bg2);border:1px solid ${isNew ? 'rgba(34,197,94,.2)' : 'var(--border)'};border-radius:8px;padding:11px 13px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+        <div>
+          <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text)">${d.date}</span>
+          ${isNew ? '<span style="font-size:7.5px;font-family:var(--mono);color:#22c55e;margin-left:8px;padding:2px 6px;border:1px solid rgba(34,197,94,.3);border-radius:50px;background:rgba(34,197,94,.08)">NEW</span>' : ''}
+        </div>
+        ${USER.length && matchCount > 0 ? `<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:${matchColor}">${matchCount} match${matchCount > 1 ? 'es' : ''}</div>` : ''}
+      </div>
+      <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+        ${balls}
+        <span style="font-size:9px;color:var(--muted);margin:0 3px">+</span>
+        ${bonusBall}
+        ${d.bonus ? `<span style="font-size:8px;color:var(--muted)">bonus</span>` : ''}
+      </div>
+      ${USER.length && matchCount > 0 ? `<div style="font-size:8.5px;color:${matchColor};margin-top:7px;font-family:var(--mono)">Your matches: ${userMatches.join(', ')}${bonusMatch ? ' + bonus ' + d.bonus : ''}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px">
+    <div>
+      <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text)">UK Lotto — Most Recent Draws</div>
+      <div style="font-size:8.5px;color:var(--muted);margin-top:2px">Updated to: <strong style="color:${statusColor}">${lastDate}</strong> · ${totalDraws.toLocaleString()} total draws · ${newCount > 0 ? `<span style="color:#22c55e">${newCount} new since dataset</span>` : 'No new draws beyond dataset'}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px">
+      <span style="font-size:8px;font-family:var(--mono);color:${statusColor}">● ${statusLabel}</span>
+      <button onclick="refreshLatest()" style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-family:var(--mono);font-size:8px;color:var(--sub);cursor:pointer">↻ Refresh</button>
+    </div>
+  </div>
+  ${newCount > 0 ? `<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:6px;padding:9px 12px;margin-bottom:12px;font-size:9.5px;color:#4ade80">${newCount} draw${newCount > 1 ? 's' : ''} found beyond the embedded dataset. Frequency analysis has been updated live for this session.</div>` : ''}
+  ${draws.length ? drawCards : '<div style="padding:20px;font-size:9.5px;color:var(--muted)">No draw data available. Merseyworld may be temporarily unavailable.</div>'}
+  ${!USER.length ? `<div style="margin-top:10px;font-size:8.5px;color:var(--muted)">Set your numbers above to see how they match each recent draw.</div>` : ''}`;
+}
+
+async function refreshLatest() {
+  liveData = null;
+  document.getElementById('panel').innerHTML = renderLatest();
+  await initLiveData();
+  if (current === 'latest') document.getElementById('panel').innerHTML = renderLatest();
+}
+
+async function initLiveData() {
+  try {
+    const res  = await fetch('/api/latest');
+    const data = await res.json();
+    liveData = data;
+
+    // Update FREQ and DRAWS if new results extend the dataset
+    if (data.freq && data.totalDraws > DRAWS) {
+      Object.assign(FREQ, data.freq);
+      // DRAWS is const — reassign via window for live session update
+      window._liveDraws = data.totalDraws;
+    }
+
+    // Update header date
+    const badge = document.getElementById('data-date');
+    if (badge) badge.textContent = 'Data to ' + data.lastDate;
+
+    // Re-render current tab if it uses frequency data
+    const freqTabs = ['overview','heatmap','due','pairs','magic','checker','your','verdict'];
+    if (freqTabs.includes(current)) {
+      document.getElementById('panel').innerHTML = RENDERS[current]();
+    }
+    if (current === 'latest') {
+      document.getElementById('panel').innerHTML = renderLatest();
+    }
+  } catch (e) {
+    console.warn('Live data fetch failed:', e);
+  }
+}
+
 // ── TABS ──────────────────────────────────────────────────────────────────────
 const TABS=[
-  {id:'overview',l:'Overview'},{id:'heatmap',l:'Heatmap'},{id:'due',l:'Due Analysis'},
+  {id:'latest',l:'🔴 Latest'},{id:'overview',l:'Overview'},{id:'heatmap',l:'Heatmap'},{id:'due',l:'Due Analysis'},
   {id:'pairs',l:'Pairs & Sync'},{id:'spotlight',l:'Ball Spotlight'},
   {id:'magic',l:'⚡ Magic Combos'},{id:'probability',l:'Probability'},
   {id:'checker',l:'Checker'},{id:'your',l:'My Numbers'},{id:'verdict',l:'Verdict'}
 ];
-const RENDERS={overview:renderOverview,heatmap:renderHeatmap,due:renderDue,pairs:renderPairs,spotlight:renderSpotlight,magic:renderMagic,probability:renderProbability,checker:renderChecker,your:renderYourNums,verdict:renderVerdict};
+const RENDERS={latest:renderLatest,overview:renderOverview,heatmap:renderHeatmap,due:renderDue,pairs:renderPairs,spotlight:renderSpotlight,magic:renderMagic,probability:renderProbability,checker:renderChecker,your:renderYourNums,verdict:renderVerdict};
 let current='overview';
 
 function switchTab(id){
@@ -973,14 +1073,14 @@ document.getElementById('tabs').innerHTML=TABS.map(t=>`<button class="tb${t.id==
 updateNsDisplay();
 document.getElementById('panel').innerHTML=RENDERS[current]();
 
-// Unique visitor counter
+// Visitor counter
 fetch('/api/visitors').then(r=>r.json()).then(d=>{
   const el=document.getElementById('visitor-badge');
-  if(el&&d.unique!=null){
-    el.textContent=d.unique.toLocaleString()+' unique visitors';
-    el.style.opacity='1';
-  }
+  if(el&&d.unique!=null){el.textContent=d.unique.toLocaleString()+' unique visitors';el.style.opacity='1';}
 }).catch(()=>{});
+
+// Live data — auto-fetches latest draws from server on every page load
+initLiveData();
 </script>
 </body>
 </html>
