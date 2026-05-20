@@ -119,7 +119,10 @@ html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'I
 <body>
 <div class="shell">
   <div class="hdr">
-    <div class="hdr-eye"><div class="hdr-dot"></div><span class="hdr-tag">UK Lotto // Intelligence Engine // 1-59 Format</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div class="hdr-eye"><div class="hdr-dot"></div><span class="hdr-tag">UK Lotto // Intelligence Engine // 1-59 Format</span></div>
+      <div id="visitor-badge" style="font-family:var(--mono);font-size:8px;color:var(--muted);text-align:right;padding-top:2px;opacity:0;transition:opacity .4s"></div>
+    </div>
     <div class="hdr-title">LottoGENX</div>
     <div class="hdr-sub">1,057 Draws · Oct 2015–May 2026 · 6,342 Ball Appearances · Merged Dataset</div>
     <div class="hdr-note">lotto_results.csv (Oct 2015–Mar 2020 · 441 draws) merged with 2020–2026 analysis (616 draws) · Pair analysis anchored to 2020–2026 era · Pre-Oct 2015 draws excluded (1-49 format incompatible)</div>
@@ -969,6 +972,15 @@ loadUser();
 document.getElementById('tabs').innerHTML=TABS.map(t=>`<button class="tb${t.id===current?' on':''}" data-id="${t.id}" onclick="switchTab('${t.id}')">${t.l}</button>`).join('');
 updateNsDisplay();
 document.getElementById('panel').innerHTML=RENDERS[current]();
+
+// Unique visitor counter
+fetch('/api/visitors').then(r=>r.json()).then(d=>{
+  const el=document.getElementById('visitor-badge');
+  if(el&&d.unique!=null){
+    el.textContent=d.unique.toLocaleString()+' unique visitors';
+    el.style.opacity='1';
+  }
+}).catch(()=>{});
 </script>
 </body>
 </html>
