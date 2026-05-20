@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LottoGENX — UK Lotto Intelligence Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060c14;--bg2:#0a1422;--bg3:#0f1c2e;--bg4:#14243a;--border:#1a2d42;
+  --red:#dc2626;--orange:#ea580c;--amber:#f59e0b;--green:#22c55e;
+  --blue:#1a6bc4;--blue-l:#3b8ee0;--blue-ll:#60a5fa;--purple:#8b5cf6;--cyan:#06b6d4;
+  --text:#e2e8f0;--sub:#94a3b8;--muted:#4a6680;--mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.5;}
+.shell{max-width:780px;margin:0 auto;}
+.hdr{background:linear-gradient(160deg,#0f172a 0%,#1e1b4b 40%,#0f172a 100%);border-bottom:1px solid var(--border);padding:14px 14px 10px;}
+.hdr-eye{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.hdr-dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 8px rgba(220,38,38,.6);}
+.hdr-tag{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;}
+.hdr-title{font-size:19px;font-weight:700;color:#fff;margin-bottom:2px;}
+.hdr-sub{font-size:9.5px;color:var(--muted);}
+.hdr-note{margin-top:7px;padding:6px 10px;background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.2);border-radius:5px;font-size:8.5px;color:var(--cyan);font-family:var(--mono);}
+.ns-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ns-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+#ns-in{background:var(--bg3);border:1.5px solid var(--border);border-radius:5px;padding:6px 10px;color:var(--text);font-family:var(--mono);font-size:11px;flex:1;min-width:150px;max-width:300px;outline:none;transition:border-color .15s;}
+#ns-in:focus{border-color:var(--blue-ll);}
+.ns-btn{background:var(--blue);color:#fff;border:none;border-radius:5px;padding:6px 13px;font-family:var(--mono);font-size:8px;font-weight:700;cursor:pointer;letter-spacing:.05em;white-space:nowrap;flex-shrink:0;}
+.ns-btn:hover{background:var(--blue-l);}
+#ns-balls{display:flex;gap:3px;flex-wrap:wrap;align-items:center;}
+.ns-ball{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-family:var(--mono);font-weight:700;font-size:9px;background:rgba(220,38,38,.15);color:#fca5a5;border:1px solid rgba(220,38,38,.3);}
+.tab-bar{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;background:var(--bg);scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tb{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:8px 10px;font-family:var(--mono);font-size:8px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
+.tb:hover{color:var(--sub);}
+.tb.on{color:var(--red);border-bottom-color:var(--red);background:rgba(220,38,38,.06);}
+.panel{padding:14px 12px;min-height:60vh;}
+.sect{margin-bottom:20px;}
+.sh{display:flex;align-items:center;gap:7px;margin-bottom:9px;}
+.sb{width:3px;height:14px;border-radius:2px;flex-shrink:0;}
+.st{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);}
+.sg{display:grid;gap:5px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.g4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.bx{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:9px 10px;}
+.bx.hl{background:rgba(220,38,38,.06);border-color:rgba(220,38,38,.25);}
+.bv{font-family:var(--mono);font-size:17px;font-weight:700;}
+.bv.r{color:var(--red);}
+.bl{font-size:8.5px;color:var(--muted);margin-top:2px;}
+.bs{font-size:7.5px;color:#475569;margin-top:1px;}
+.alrt{border-radius:6px;padding:9px 11px;font-size:9.5px;line-height:1.55;margin-top:8px;border:1px solid;}
+.hg{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;margin-bottom:8px;}
+.hc{aspect-ratio:1;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;border:1px solid rgba(255,255,255,.03);}
+.hc.you{border:2px solid #fff;box-shadow:0 0 7px rgba(255,255,255,.3);}
+.hn{font-family:var(--mono);font-weight:700;font-size:10px;}
+.hf{font-size:5px;opacity:.55;}
+.tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.tbl th{text-align:left;padding:6px 9px;font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+.tbl td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.025);vertical-align:middle;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.tbl tr:last-child td{border-bottom:none;}
+.pill{display:inline-block;padding:2px 7px;border-radius:50px;font-size:8px;font-weight:700;border:1px solid;font-family:var(--mono);}
+.ball{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-family:var(--mono);font-weight:700;font-size:9.5px;background:rgba(255,255,255,.06);color:var(--sub);border:1px solid var(--border);}
+.ball.you{background:rgba(220,38,38,.15);color:#fca5a5;border-color:rgba(220,38,38,.3);}
+.blg{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;font-family:var(--mono);font-weight:700;font-size:14px;border:2px solid;}
+.br{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.bf{height:100%;border-radius:3px;}
+.dc{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;}
+.dcl{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:7px 4px;text-align:center;}
+.dcl.gap{border-color:rgba(220,38,38,.25);background:rgba(220,38,38,.05);}
+.dcl.hot{border-color:rgba(234,88,12,.25);background:rgba(234,88,12,.04);}
+.dr{font-size:8px;color:var(--muted);margin-bottom:3px;}
+.dv{font-family:var(--mono);font-size:11px;font-weight:700;}
+.dd{font-size:7.5px;color:var(--sub);margin-top:2px;}
+/* magic */
+.mc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 13px;margin-bottom:10px;}
+.mc.top{border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.04);}
+.mc-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px;}
+.mc-name{font-family:var(--mono);font-size:11px;font-weight:700;margin-bottom:2px;}
+.mc-tag{font-size:7.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:50px;border:1px solid;}
+.mc-score{font-family:var(--mono);font-size:22px;font-weight:700;}
+.mc-balls{display:flex;gap:5px;margin-bottom:9px;flex-wrap:wrap;}
+.mc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px;}
+.ms{background:rgba(255,255,255,.025);border-radius:5px;padding:5px 7px;text-align:center;}
+.mv{font-family:var(--mono);font-size:13px;font-weight:700;}
+.ml{font-size:7px;color:var(--muted);margin-top:1px;}
+.mc-rat{font-size:9px;color:var(--sub);line-height:1.55;border-top:1px solid var(--border);padding-top:8px;}
+.score-bar{display:flex;align-items:center;gap:7px;margin-bottom:8px;}
+.sb-track{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+.sb-fill{height:100%;border-radius:2px;}
+/* mode btns */
+.modes{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;}
+.mode-btn{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:6px 12px;font-family:var(--mono);font-size:8.5px;cursor:pointer;color:var(--muted);transition:all .15s;}
+.mode-btn:hover{border-color:var(--sub);color:var(--sub);}
+.mode-btn.sel{background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.4);color:#a78bfa;}
+/* prob */
+.prob-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.03);}
+.prob-row.prize{background:rgba(220,38,38,.03);}
+/* checker */
+.ck-in{display:flex;gap:6px;margin-bottom:7px;align-items:center;}
+.ck-label{font-family:var(--mono);font-size:8.5px;color:var(--muted);width:44px;flex-shrink:0;}
+.ck-field{flex:1;background:var(--bg3);border:1.5px solid var(--border);border-radius:5px;padding:7px 10px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;}
+.ck-field:focus{border-color:var(--blue-ll);}
+/* verdict */
+.vi{display:flex;gap:8px;padding:8px 9px;background:rgba(255,255,255,.015);border-radius:5px;border:1px solid rgba(255,255,255,.03);margin-bottom:5px;}
+.vic{font-family:var(--mono);font-size:13px;flex-shrink:0;color:var(--green);margin-top:1px;}
+.vit{font-family:var(--mono);font-size:10px;color:var(--text);margin-bottom:2px;}
+.vib{font-size:9px;color:var(--sub);line-height:1.5;}
+/* spotlight */
+.sl-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:13px 14px;}
+.sl-input-row{display:flex;gap:8px;margin-bottom:12px;align-items:center;}
+.sl-in{background:var(--bg3);border:1.5px solid var(--border);border-radius:5px;padding:7px 10px;color:var(--text);font-family:var(--mono);font-size:14px;width:80px;outline:none;}
+.sl-in:focus{border-color:var(--blue-ll);}
+@media(max-width:520px){.g4{grid-template-columns:1fr 1fr;}.dc{grid-template-columns:repeat(3,1fr);}.mc-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="hdr">
+    <div class="hdr-eye"><div class="hdr-dot"></div><span class="hdr-tag">UK Lotto // Intelligence Engine // 1-59 Format</span></div>
+    <div class="hdr-title">LottoGENX</div>
+    <div class="hdr-sub">1,057 Draws · Oct 2015–May 2026 · 6,342 Ball Appearances · Merged Dataset</div>
+    <div class="hdr-note">lotto_results.csv (Oct 2015–Mar 2020 · 441 draws) merged with 2020–2026 analysis (616 draws) · Pair analysis anchored to 2020–2026 era · Pre-Oct 2015 draws excluded (1-49 format incompatible)</div>
+  </div>
+  <div class="ns-bar">
+    <span class="ns-lbl">My Numbers</span>
+    <input id="ns-in" type="text" placeholder="6 numbers 1–59 e.g. 7 21 33 42 43 55" onkeydown="if(event.key==='Enter')setNums()">
+    <button class="ns-btn" onclick="setNums()">SET →</button>
+    <div id="ns-balls"><span style="font-size:8.5px;color:var(--muted);font-family:var(--mono)">No numbers set</span></div>
+  </div>
+  <nav class="tab-bar" id="tabs"></nav>
+  <div id="panel" class="panel"></div>
+</div>
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const FREQ={1:98,2:102,3:109,4:107,5:102,6:100,7:107,8:112,9:113,10:111,11:118,12:110,13:105,14:109,15:104,16:115,17:106,18:101,19:101,20:114,21:87,22:107,23:101,24:100,25:100,26:101,27:119,28:102,29:106,30:98,31:116,32:99,33:107,34:120,35:107,36:122,37:126,38:115,39:120,40:110,41:108,42:120,43:91,44:94,45:110,46:107,47:112,48:93,49:108,50:101,51:105,52:120,53:102,54:122,55:103,56:105,57:107,58:116,59:111};
+const DRAWS=1057,PER=6,BALLS=59;
+const EXP=DRAWS*PER/BALLS;          // 107.49
+const MAXF=126;
+const E_PAIR=5.400;                 // C(57,4)/C(59,6)*616 — pairs vs 2020-2026 era
+
+// Top global pairs — from 2020-2026 era (616 draws)
+const TOP_PAIRS=[[[42,59],15],[[37,42],15],[[16,47],14],[[37,39],14],[[27,46],13],[[27,57],13],[[14,33],13],[[33,50],13],[[20,50],12],[[13,14],12],[[24,37],12],[[12,35],12],[[38,47],12],[[13,39],12],[[28,31],12],[[12,58],12],[[38,42],11],[[38,54],11],[[15,45],11],[[50,56],11]];
+// O(1) pair lookup
+const PAIR_MAP={};
+TOP_PAIRS.forEach(([p,c])=>{const k=Math.min(p[0],p[1])+'_'+Math.max(p[0],p[1]);PAIR_MAP[k]=c;});
+function pairCount(a,b){return PAIR_MAP[Math.min(a,b)+'_'+Math.max(a,b)]||0;}
+
+// Year data (2020-2026, for reference balls 5,7,14,25,32,42)
+const YR_DATA={5:{2020:5,2021:6,2022:11,2023:11,2024:8,2025:11,2026:5},7:{2020:12,2021:9,2022:7,2023:11,2024:12,2025:12,2026:3},14:{2020:12,2021:8,2022:12,2023:11,2024:10,2025:8,2026:2},25:{2020:11,2021:5,2022:9,2023:5,2024:15,2025:7,2026:3},32:{2020:11,2021:11,2022:6,2023:5,2024:9,2025:7,2026:3},42:{2020:11,2021:9,2022:9,2023:16,2024:7,2025:17,2026:0}};
+const YR_TOTAL={2020:99,2021:96,2022:97,2023:100,2024:93,2025:105,2026:26};
+
+// User numbers — dynamic
+let USER=[];
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+const isU=n=>USER.includes(n);
+const dueOf=n=>(EXP-FREQ[n])/EXP*100;  // positive = below expected = due
+const dueCol=d=>d>15?'#22c55e':d>8?'#4ade80':d>0?'#86efac':d>-10?'#94a3b8':d>-15?'#f59e0b':'#ef4444';
+const dueLabel=d=>d>15?'VERY DUE':d>8?'DUE':d>0?'SLIGHTLY DUE':d>-10?'ON TRACK':d>-15?'HOT':'VERY HOT';
+
+function heatCol(c){
+  const r=c/MAXF;
+  if(r>=0.9)return{bg:'#dc2626',fg:'#fff'};
+  if(r>=0.8)return{bg:'#ea580c',fg:'#fff'};
+  if(r>=0.7)return{bg:'#d97706',fg:'#1a1a2e'};
+  if(r>=0.6)return{bg:'#ca8a04',fg:'#1a1a2e'};
+  if(r>=0.5)return{bg:'#65a30d',fg:'#fff'};
+  return{bg:'#1f2937',fg:'#6b7280'};
+}
+function chiSig(chi){
+  if(chi>10.83)return{s:'★★★',l:'p<0.001',c:'#dc2626'};
+  if(chi>6.63)return{s:'★★',l:'p<0.01',c:'#f59e0b'};
+  if(chi>3.84)return{s:'★',l:'p<0.05',c:'#22c55e'};
+  return{s:'—',l:'ns',c:'#4a6680'};
+}
+function bsm(n){return`<span class="ball${isU(n)?' you':''}">${n}</span>`;}
+function sect(title,body,col='#dc2626'){
+  return`<div class="sect"><div class="sh"><div class="sb" style="background:${col}"></div><span class="st">${title}</span></div>${body}</div>`;
+}
+function sbox(lbl,val,sub='',hl=false){
+  return`<div class="bx${hl?' hl':''}"><div class="bv${hl?' r':''}">${val}</div><div class="bl">${lbl}</div>${sub?`<div class="bs">${sub}</div>`:''}</div>`;
+}
+function alrt(col,icon,txt){
+  return`<div class="alrt" style="background:${col}0d;border-color:${col}33;color:${col}"><strong>${icon} </strong>${txt}</div>`;
+}
+
+// Combo scoring — used by Magic Combos and Checker
+function scoreCombo(nums,mode='balanced'){
+  const sorted=[...nums].sort((a,b)=>a-b);
+  const sum=nums.reduce((a,b)=>a+b,0);
+  const odds=nums.filter(n=>n%2).length;
+  const decades=new Set(nums.map(n=>Math.ceil(n/10))).size;
+  // Due
+  const dues=nums.map(n=>Math.max(0,dueOf(n)));
+  const avgDue=dues.reduce((a,b)=>a+b,0)/6;
+  // Sync — sum of chi-sq for all pairs in line
+  let syncTotal=0,syncPairs=0;
+  for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){
+    const c=pairCount(sorted[i],sorted[j]);
+    if(c){const chi=(c-E_PAIR)**2/E_PAIR;syncTotal+=chi;syncPairs++;}
+  }
+  // Balance
+  const sumScore=sum>=165&&sum<=195?25:sum>=150&&sum<=210?14:sum>=135&&sum<=225?6:0;
+  const oeScore=(odds===3||odds===4)?10:(odds===2||odds===5)?5:2;
+  const balScore=sumScore+oeScore;
+  // Spread
+  const spreadScore=decades/6*25;
+
+  const s1=Math.min(25,avgDue*1.8);
+  const s2=Math.min(25,syncTotal/17*20+syncPairs*1.5);
+  const s3=balScore;
+  const s4=spreadScore;
+
+  let w;
+  switch(mode){
+    case'due':     w={d:0.50,s:0.10,b:0.20,sp:0.20};break;
+    case'sync':    w={d:0.10,s:0.55,b:0.18,sp:0.17};break;
+    case'hot':     w={d:-0.2,s:0.25,b:0.30,sp:0.25};break; // negative due = rewards HOT balls
+    case'terrain': w={d:0.20,s:0.20,b:0.25,sp:0.35};break;
+    default:       w={d:0.25,s:0.25,b:0.25,sp:0.25};
+  }
+  const raw=s1*w.d+s2*w.s+s3*w.b+s4*w.sp;
+  return{score:Math.round(Math.max(0,Math.min(100,raw*100/35))),s1,s2,s3:Math.round(s3),s4:Math.round(s4),sum,decades,odds,syncPairs,syncTotal,avgDue};
+}
+
+// ── MAGIC COMBOS ENGINE ───────────────────────────────────────────────────────
+function genMagicCombos(mode){
+  // Build candidate pool (top 22 by mode-specific ball score)
+  const ballScores=Array.from({length:59},(_,i)=>{
+    const n=i+1;
+    const due=dueOf(n);
+    const sync=TOP_PAIRS.reduce((s,[p,c])=>p.includes(n)?s+c:s,0);
+    const hot=-due;
+    let sc;
+    if(mode==='due')    sc=Math.max(0,due)*4+sync*0.15;
+    else if(mode==='sync')  sc=Math.max(0,due)*0.3+sync*2.5;
+    else if(mode==='hot')   sc=Math.max(0,hot)*3+sync*0.5;
+    else if(mode==='terrain')sc=Math.max(0,due)*1.5+sync*0.8+(n>=10&&n<=59?2:0);
+    else                sc=Math.max(0,due)*2+sync*1.2;
+    return{n,sc};
+  }).sort((a,b)=>b.sc-a.sc).slice(0,22).map(x=>x.n);
+
+  // Generate all C(22,6) = 74,613 combos, filter by sum, score
+  const results=[];
+  const p=ballScores;
+  const L=p.length;
+  for(let a=0;a<L-5;a++)
+  for(let b=a+1;b<L-4;b++)
+  for(let c=b+1;c<L-3;c++)
+  for(let d=c+1;d<L-2;d++)
+  for(let e=d+1;e<L-1;e++)
+  for(let f=e+1;f<L;f++){
+    {
+      const sum=p[a]+p[b]+p[c]+p[d]+p[e]+p[f];
+      if(sum<140||sum>215)continue;
+      const nums=[p[a],p[b],p[c],p[d],p[e],p[f]];
+      const sc=scoreCombo(nums,mode);
+      results.push({nums,score:sc.score,meta:sc});
+    }
+  }
+  results.sort((a,b)=>b.score-a.score);
+  // Diversity filter: top 5, each sharing ≤3 numbers with previous picks
+  const out=[];
+  for(const r of results){
+    if(out.every(o=>r.nums.filter(n=>o.nums.includes(n)).length<=3)){
+      out.push(r);
+      if(out.length>=5)break;
+    }
+  }
+  return out;
+}
+
+// ── TAB RENDERS ──────────────────────────────────────────────────────────────
+
+function renderOverview(){
+  const userDecs=new Set(USER.map(n=>Math.ceil(n/10)));
+  const decData=[
+    {r:'1–9',tot:950,exp:967,diff:-17},
+    {r:'10–19',tot:1080,exp:1075,diff:5},
+    {r:'20–29',tot:1037,exp:1075,diff:-38},
+    {r:'30–39',tot:1130,exp:1075,diff:55},
+    {r:'40–49',tot:1053,exp:1075,diff:-22},
+    {r:'50–59',tot:1092,exp:1075,diff:17}
+  ];
+  const decGrid=decData.map((d,i)=>{
+    const dec=i+1;
+    const userBalls=[...USER].sort((a,b)=>a-b).filter(n=>Math.ceil(n/10)===dec);
+    const has=userBalls.length>0;
+    const hot=d.diff>30;const cold=d.diff<-20;
+    return`<div class="dcl${!has&&USER.length?' gap':hot?' hot':''}">
+      <div class="dr">${d.r}</div>
+      <div class="dv" style="color:${d.diff>30?'#ea580c':d.diff<-20?'#60a5fa':'var(--text)'}">${d.diff>0?'+':''}${d.diff}</div>
+      <div class="dd" style="color:${!has&&USER.length?'#ef4444':'var(--sub)'}">${USER.length?(has?userBalls.join(','):'NONE'):'—'}</div>
+    </div>`;
+  }).join('');
+
+  const hot12=Object.entries(FREQ).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([n,c])=>{
+    const col=heatCol(c);const u=isU(+n);
+    return`<div style="width:42px;height:42px;border-radius:50%;background:${u?'linear-gradient(135deg,#dc2626,#f97316)':col.bg};display:flex;flex-direction:column;align-items:center;justify-content:center;border:${u?'2px solid rgba(255,255,255,.3)':'none'};box-shadow:${u?'0 0 10px rgba(220,38,38,.45)':'none'}"><span style="font-family:var(--mono);font-weight:700;font-size:11px;color:${u?'#fff':col.fg}">${n}</span><span style="font-size:5.5px;opacity:.7;color:${u?'rgba(255,255,255,.6)':col.fg}">×${c}</span></div>`;
+  }).join('');
+
+  const mostDue=Object.entries(FREQ).sort((a,b)=>a[1]-b[1])[0];
+  const mostHot=Object.entries(FREQ).sort((a,b)=>b[1]-a[1])[0];
+
+  return sect('Summary — 1,057 Merged Draws',`
+    <div class="sg g4" style="margin-bottom:7px">
+      ${sbox('Total Draws','1,057','Oct 2015 – May 2026')}
+      ${sbox('Ball Appearances','6,342','59 balls × 6 per draw')}
+      ${sbox('Hottest Ball','37','126× · +17.2% above exp')}
+      ${sbox('Most Due','21','87× · −19.1% below exp',true)}
+    </div>
+    <div class="sg g4" style="margin-bottom:7px">
+      ${sbox('Jackpot Odds','1:45.1M','Per draw — fixed')}
+      ${sbox('Match 3 Odds','1:97','Per draw')}
+      ${sbox('Expected / Ball','107.5','Across 1,057 draws')}
+      ${sbox('Draw Mean Sum','180','Target band: 165–195')}
+    </div>`)
+  +sect('Top 12 Hottest — 1,057 Draws',`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">${hot12}</div>`
+    +alrt('#ea580c','◉',`Ball 37 leads (126×) across 11 years — consistency confirmed. Red glow = your picks.`),
+  '#ea580c')
+  +sect('Decade Distribution — All 1,057 Draws',`<div class="dc">${decGrid}</div>`
+    +alrt('#f59e0b','⬡',`30–39 decade running +55 above expected — persistently the hottest band across the full dataset. 20–29 is the most under-represented (−38). ${USER.length?'Gap = decade not covered by your numbers.':'Set your numbers above to see your coverage.'}`),
+  '#f59e0b');
+}
+
+function renderHeatmap(){
+  const cells=Array.from({length:59},(_,i)=>i+1).map(n=>{
+    const c=FREQ[n];const col=heatCol(c);const u=isU(n);
+    return`<div class="hc${u?' you':''}" style="background:${col.bg};border-color:${u?'rgba(255,255,255,.6)':'rgba(255,255,255,.03)'}">
+      <span class="hn" style="color:${col.fg}">${n}</span>
+      <span class="hf" style="color:${col.fg}">${c}</span>
+      ${u?'<div style="position:absolute;top:-1px;right:-1px;width:4px;height:4px;border-radius:50%;background:#fff"></div>':''}
+    </div>`;
+  }).join('');
+  const bars=Array.from({length:59},(_,i)=>i+1).map(n=>{
+    const c=FREQ[n];const u=isU(n);const h=(c/MAXF)*85;
+    return`<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:${h}px;background:${u?'linear-gradient(180deg,#dc2626,#991b1b)':'linear-gradient(180deg,#475569,#1e293b)'};border:${u?'1px solid #f87171':'none'};border-radius:1px 1px 0 0;min-height:1px"></div></div>`;
+  }).join('');
+  return sect('1–59 Heatmap · 1,057 Draws',`<div class="hg">${cells}</div>`
+    +`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:5px">`
+    +[{c:'#dc2626',l:'113+'},{c:'#ea580c',l:'100–112'},{c:'#d97706',l:'88–99'},{c:'#ca8a04',l:'75–87'},{c:'#65a30d',l:'63–74'},{c:'#1f2937',l:'<63'}].map(x=>`<div style="display:flex;align-items:center;gap:3px"><div style="width:8px;height:8px;border-radius:2px;background:${x.c}"></div><span style="font-size:8px;color:var(--muted)">${x.l}</span></div>`).join('')
+    +`<div style="display:flex;align-items:center;gap:3px"><div style="width:8px;height:8px;border:2px solid #fff;border-radius:2px"></div><span style="font-size:8px;color:var(--muted)">Your picks</span></div></div>`)
+  +sect('Frequency Bars',`<div style="display:flex;align-items:flex-end;gap:1px;height:85px;margin:6px 0">${bars}</div><div style="font-size:8.5px;color:var(--muted)">Red bars = your numbers · Tallest bar = Ball 37 (126×) · Shortest = Ball 21 (87×)</div>`,'#8b5cf6');
+}
+
+function renderDue(){
+  const sorted=Object.entries(FREQ).map(([n,c])=>({n:+n,c,dev:c-EXP,pct:(c-EXP)/EXP*100})).sort((a,b)=>a.dev-b.dev);
+  const cold=[...sorted].sort((a,b)=>a.dev-b.dev).slice(0,15);
+  const hot=[...sorted].sort((a,b)=>b.dev-a.dev).slice(0,15);
+
+  function dRow(d,side){
+    const isC=side==='cold';const u=isU(d.n);
+    const abs=Math.abs(d.pct).toFixed(1);
+    const col=isC?'#22c55e':'#ef4444';
+    return`<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:${u?'rgba(220,38,38,.06)':'rgba(255,255,255,.015)'};border-radius:5px;border:1px solid ${u?'rgba(220,38,38,.25)':'rgba(255,255,255,.04)'};margin-bottom:3px">
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700;width:22px;text-align:center;color:${u?'#fca5a5':col}">${d.n}</div>
+      <div style="flex:1">
+        <div style="font-family:var(--mono);font-size:9.5px;color:var(--sub)">${d.c}× <span style="color:${col}">${isC?'−':'+'}${Math.abs(d.dev).toFixed(1)}</span></div>
+        <div class="br" style="margin-top:3px"><div class="bf" style="width:${Math.min(100,abs/26.6*100)}%;background:${col}"></div></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:8.5px;color:${col};white-space:nowrap">${isC?'−':'+'}${abs}%</div>
+    </div>`;
+  }
+
+  return`<div style="background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:9.5px;color:#fbbf24;line-height:1.6">
+    <strong>Law of Averages Framework</strong> · Expected per ball: <strong style="font-family:var(--mono)">${EXP.toFixed(2)}</strong> across ${DRAWS} draws.
+    A ball below expected carries a <em>historical deficit</em>. Each draw is independent — the deficit does not cause future selection. But if the draw mechanism is truly uniform, frequencies will converge over time. Deficit balls have debt to recover. Surplus balls have borrowed from their future.
+  </div>`
+  +sect('Cold — Most Due (Below Expected)',
+    `<div class="sg g4" style="margin-bottom:8px">
+      ${sbox('Most Due','Ball 21','87× · −19.1%',true)}
+      ${sbox('2nd','Ball 43','91× · −15.3%')}
+      ${sbox('3rd','Ball 48','93× · −13.5%')}
+      ${sbox('4th','Ball 44','94× · −12.6%')}
+    </div>`
+    +cold.map(d=>dRow(d,'cold')).join('')
+    +alrt('#22c55e','↓',`${USER.length?`Your due numbers: ${[...USER].filter(n=>dueOf(n)>5).map(n=>`${n}(${dueOf(n).toFixed(0)}%)`).join(', ')||'none above threshold'}. `:'Set your numbers to see which are due. '}Red highlight = your pick.`),
+  '#22c55e')
+  +sect('Hot — Above Expected (Drawn More Than Fair Share)',
+    hot.map(d=>dRow(d,'hot')).join('')
+    +alrt('#dc2626','▲','Ball 37 leads at +17.2%. Balls 36, 54, 34, 39, 42 all running hot across the merged 11-year dataset. Hot balls are statistically "borrowing" from future draws.'),
+  '#dc2626');
+}
+
+function renderPairs(){
+  // Global pairs table
+  const rows=TOP_PAIRS.map(([pair,count])=>{
+    const chi=(count-E_PAIR)**2/E_PAIR;const sig=chiSig(chi);
+    const bothInUser=isU(pair[0])&&isU(pair[1]);
+    const oneInUser=isU(pair[0])||isU(pair[1]);
+    return`<tr style="${bothInUser?'background:rgba(139,92,246,.06)':''}">
+      <td><span style="display:flex;gap:3px;align-items:center">${bsm(pair[0])}${bsm(pair[1])}${bothInUser?'<span style="font-size:7.5px;color:#a78bfa;margin-left:3px">★ BOTH YOURS</span>':''}</span></td>
+      <td style="font-family:var(--mono);font-weight:700">${count}×</td>
+      <td style="font-family:var(--mono);font-size:9.5px">${chi.toFixed(2)}</td>
+      <td><span class="pill" style="color:${sig.c};border-color:${sig.c}30;background:${sig.c}0d">${sig.s} ${sig.l}</span></td>
+      <td style="font-family:var(--mono);color:${chi>6.63?'#fbbf24':'var(--muted)'}">${(count/E_PAIR).toFixed(2)}×</td>
+    </tr>`;
+  }).join('');
+
+  // Dynamic user pairs — find all top pairs containing any user number
+  const myPairsAll=USER.length?TOP_PAIRS.filter(([p])=>isU(p[0])||isU(p[1])):[];
+  const myInternal=myPairsAll.filter(([p])=>isU(p[0])&&isU(p[1]));
+
+  const userPairSection=USER.length?
+    sect(`Your Numbers in Top Pairs`,
+      myPairsAll.length?
+      `<table class="tbl"><thead><tr><th>Pair</th><th>Count</th><th>Chi-sq</th><th>Sig</th></tr></thead><tbody>`
+      +myPairsAll.map(([pair,count])=>{
+        const chi=(count-E_PAIR)**2/E_PAIR;const sig=chiSig(chi);
+        const both=isU(pair[0])&&isU(pair[1]);
+        return`<tr style="${both?'background:rgba(139,92,246,.06)':''}">
+          <td>${bsm(pair[0])} ${bsm(pair[1])} ${both?'<span style="font-size:7.5px;color:#a78bfa">★ both in your line</span>':''}</td>
+          <td style="font-family:var(--mono)">${count}×</td>
+          <td style="font-family:var(--mono);font-size:9.5px">${chi.toFixed(2)}</td>
+          <td><span class="pill" style="color:${sig.c};border-color:${sig.c}30;background:${sig.c}0d">${sig.s} ${sig.l}</span></td>
+        </tr>`;
+      }).join('')+'</tbody></table>'
+      +alrt('#a78bfa','★',myInternal.length?`${myInternal.length} pair${myInternal.length>1?'s':''} where BOTH your numbers appear together: ${myInternal.map(([p,c])=>`(${p[0]},${p[1]}) ${c}×`).join(' · ')}. Synchronicity confirmed in dataset.`:'No top-20 pair has both your numbers together. Your numbers do not form known synchronicities with each other.')
+      :'<div style="padding:10px;font-size:9.5px;color:var(--muted)">None of your numbers appear in the top 20 global pairs.</div>',
+    '#a78bfa'):'';
+
+  // Hub balls
+  const hubs={};
+  TOP_PAIRS.forEach(([p,c])=>p.forEach(n=>{if(!hubs[n])hubs[n]={pairs:0,tot:0};hubs[n].pairs++;hubs[n].tot+=c;}));
+  const hubRows=Object.entries(hubs).sort((a,b)=>b[1].tot-a[1].tot).slice(0,10).map(([n,d])=>`<tr>
+    <td>${bsm(+n)}</td>
+    <td style="font-family:var(--mono)">${d.pairs}</td>
+    <td style="font-family:var(--mono);color:#fbbf24">${d.tot}×</td>
+    <td style="font-size:8.5px;color:var(--muted)">${TOP_PAIRS.filter(([p])=>p.includes(+n)).map(([p,c])=>`(${p[0]},${p[1]}) ${c}×`).join(' · ')}</td>
+  </tr>`).join('');
+
+  return`<div style="background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:6px;padding:9px 12px;margin-bottom:14px;font-size:8.5px;color:#a5b4fc;font-family:var(--mono)">
+    Expected pair co-occurrence (616 draws): <strong>${E_PAIR.toFixed(3)}</strong> · P = C(57,4)/C(59,6) = 0.877% per draw · Significance: ★ p&lt;0.05 · ★★ p&lt;0.01 · ★★★ p&lt;0.001
+  </div>`
+  +sect('Top 20 Global Pairs — Chi-Square Significance',
+    `<table class="tbl"><thead><tr><th>Pair</th><th>Count</th><th>Chi-sq</th><th>Significance</th><th>Multiplier</th></tr></thead><tbody>${rows}</tbody></table>`
+    +alrt('#f97316','◉','(42,59) and (37,42) lead at 15× — 2.78× expected (p<0.001). All 20 listed pairs beat p<0.05. Purple highlight = both balls in your current line.'),
+  '#f97316')
+  +sect('Hub Balls — Most Synchronicity Connections',
+    `<table class="tbl"><thead><tr><th>Ball</th><th>Top Pairs</th><th>Total Sync</th><th>Pairs Detail</th></tr></thead><tbody>${hubRows}</tbody></table>`
+    +alrt('#8b5cf6','⬡','Ball 37 and 42 are joint hubs — each in 3 top pairs. Ball 42 is a synchronicity hub AND in your interest as a historically strong performer.'),
+  '#8b5cf6')
+  +userPairSection;
+}
+
+function renderSpotlight(){
+  const yrs=Object.keys(YR_TOTAL).map(Number);
+  const expRate=PER/BALLS*100;
+
+  function ballProfile(n){
+    if(!n||n<1||n>59)return'<div style="color:var(--muted);font-size:9.5px;padding:10px">Enter a ball number 1–59.</div>';
+    const c=FREQ[n];const d=dueOf(n);const col=dueCol(d);
+    const inPairs=TOP_PAIRS.filter(([p])=>p.includes(n));
+    const yr=YR_DATA[n];
+
+    const pairSection=inPairs.length?
+      `<div style="margin-top:10px">`+inPairs.map(([p,count])=>{
+        const chi=(count-E_PAIR)**2/E_PAIR;const sig=chiSig(chi);
+        return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03)">
+          <span style="font-family:var(--mono);font-size:10px">(${p[0]}, ${p[1]})</span>
+          <span style="font-family:var(--mono);font-weight:700">${count}×</span>
+          <span class="pill" style="color:${sig.c};border-color:${sig.c}30;background:${sig.c}0d">${sig.s} ${sig.l}</span>
+        </div>`;
+      }).join('')+'</div>'
+      :'<div style="font-size:9px;color:var(--muted);margin-top:6px">Not in any top-20 global pair.</div>';
+
+    const yrSection=yr?
+      `<div style="display:flex;gap:3px;margin-top:10px">`+yrs.map(yr2=>{
+        const cnt=yr[yr2]||0;const tot=YR_TOTAL[yr2];const pct=(cnt/tot*100);
+        const above=pct>expRate+2;const below=pct<expRate-2;
+        return`<div style="flex:1;text-align:center">
+          <div style="background:${above?'rgba(34,197,94,.12)':below?'rgba(239,68,68,.1)':'rgba(255,255,255,.025)'};border:1px solid ${above?'rgba(34,197,94,.3)':below?'rgba(239,68,68,.25)':'var(--border)'};border-radius:4px;padding:5px 2px">
+            <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:${above?'#4ade80':below?'#f87171':'#94a3b8'}">${cnt}</div>
+            <div style="font-size:7px;color:#475569">${pct.toFixed(0)}%</div>
+          </div>
+          <div style="font-size:7px;color:var(--muted);margin-top:2px">${String(yr2).slice(2)}</div>
+        </div>`;
+      }).join('')+'</div>'
+      :`<div style="font-size:8.5px;color:var(--muted);margin-top:6px;padding:8px;background:rgba(255,255,255,.02);border-radius:5px;border:1px solid var(--border)">Year-by-year data available for reference balls only (5,7,14,25,32,42 from 2020–2026 analysis). Ball ${n} requires raw CSV processing for full year breakdown.</div>`;
+
+    return`<div class="sl-wrap">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:52px;height:52px;border-radius:50%;background:${heatCol(c).bg};display:flex;flex-direction:column;align-items:center;justify-content:center;border:${isU(n)?'3px solid #fff':'2px solid rgba(255,255,255,.1)'};box-shadow:${isU(n)?'0 0 12px rgba(255,255,255,.3)':'none'}">
+          <span style="font-family:var(--mono);font-weight:700;font-size:15px;color:${heatCol(c).fg}">${n}</span>
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text)">Ball ${n} ${isU(n)?'<span style="color:#fca5a5;font-size:9px">★ YOUR NUMBER</span>':''}</div>
+          <div style="font-size:9px;color:${col};margin-top:2px">${dueLabel(d)} · ${d>0?'−':'+'}${Math.abs(d).toFixed(1)}% vs expected</div>
+          <div style="font-size:8.5px;color:var(--muted);margin-top:1px">Decade ${Math.ceil(n/10)*10-9}–${Math.ceil(n/10)*10} · ${n%2?'Odd':'Even'}</div>
+        </div>
+      </div>
+      <div class="sg g4" style="margin-bottom:10px">
+        ${sbox('Appearances',c+'×','across 1,057 draws')}
+        ${sbox('Expected',EXP.toFixed(1)+'×','per ball baseline')}
+        ${sbox('Deviation',`${d>0?'−':'+'}${Math.abs(d).toFixed(1)}%`,dueLabel(d),d>10)}
+        ${sbox('Top Pairs',inPairs.length+'','in top-20 global list')}
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em">Top pairs containing ball ${n}</div>
+      ${pairSection}
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:12px;margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em">Year trend (2020–2026)</div>
+      ${yrSection}
+    </div>`;
+  }
+
+  return`<div style="margin-bottom:12px">
+    <div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.2);border-radius:6px;padding:9px 12px;margin-bottom:12px;font-size:9.5px;color:var(--cyan)">
+      Enter any ball number 1–59 to get its full profile: frequency, law of averages position, synchronicity pairs, year trend (where data available).
+    </div>
+    <div class="sl-input-row">
+      <input class="sl-in" id="sl-ball" type="number" min="1" max="59" placeholder="1–59" onkeydown="if(event.key==='Enter')showSpotlight()">
+      <button class="ns-btn" onclick="showSpotlight()">PROFILE →</button>
+    </div>
+    <div id="sl-out">${ballProfile(null)}</div>
+  </div>`;
+}
+
+function showSpotlight(){
+  const inp=document.getElementById('sl-ball');
+  const n=inp?parseInt(inp.value):null;
+  const out=document.getElementById('sl-out');
+  if(!out)return;
+  if(!n||n<1||n>59){out.innerHTML='<div style="color:#f87171;font-size:9.5px;padding:8px">Enter a number between 1 and 59.</div>';return;}
+
+  const c=FREQ[n];const d=dueOf(n);const col=dueCol(d);
+  const inPairs=TOP_PAIRS.filter(([p])=>p.includes(n));
+  const yr=YR_DATA[n];
+  const yrs=Object.keys(YR_TOTAL).map(Number);
+  const expRate=PER/BALLS*100;
+
+  const pairSection=inPairs.length?
+    inPairs.map(([p,count])=>{const chi=(count-E_PAIR)**2/E_PAIR;const sig=chiSig(chi);
+      return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03)"><span style="font-family:var(--mono);font-size:10px">(${p[0]}, ${p[1]})</span><span style="font-family:var(--mono);font-weight:700">${count}×</span><span class="pill" style="color:${sig.c};border-color:${sig.c}30;background:${sig.c}0d">${sig.s} ${sig.l}</span></div>`;
+    }).join('')
+    :'<div style="font-size:9px;color:var(--muted)">Not in any top-20 global pair.</div>';
+
+  const yrSection=yr?
+    `<div style="display:flex;gap:3px;">`+yrs.map(yr2=>{
+      const cnt=yr[yr2]||0;const tot=YR_TOTAL[yr2];const pct=(cnt/tot*100);
+      const above=pct>expRate+2;const below=pct<expRate-2;
+      return`<div style="flex:1;text-align:center"><div style="background:${above?'rgba(34,197,94,.12)':below?'rgba(239,68,68,.1)':'rgba(255,255,255,.025)'};border:1px solid ${above?'rgba(34,197,94,.3)':below?'rgba(239,68,68,.25)':'var(--border)'};border-radius:4px;padding:5px 2px"><div style="font-family:var(--mono);font-size:12px;font-weight:700;color:${above?'#4ade80':below?'#f87171':'#94a3b8'}">${cnt}</div><div style="font-size:7px;color:#475569">${pct.toFixed(0)}%</div></div><div style="font-size:7px;color:var(--muted);margin-top:2px">${String(yr2).slice(2)}</div></div>`;
+    }).join('')+'</div>'
+    :`<div style="font-size:8.5px;color:var(--muted);padding:8px;background:rgba(255,255,255,.02);border-radius:5px;border:1px solid var(--border)">Year data pre-computed for balls 5,7,14,25,32,42 (2020–2026 era) only. Ball ${n} needs raw CSV processing for year breakdown.</div>`;
+
+  out.innerHTML=`<div class="sl-wrap">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="width:52px;height:52px;border-radius:50%;background:${heatCol(c).bg};display:flex;flex-direction:column;align-items:center;justify-content:center;border:${isU(n)?'3px solid #fff':'2px solid rgba(255,255,255,.1)'}">
+        <span style="font-family:var(--mono);font-weight:700;font-size:15px;color:${heatCol(c).fg}">${n}</span>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:11px;font-weight:700">Ball ${n} ${isU(n)?'<span style="color:#fca5a5;font-size:9px">★ YOUR NUMBER</span>':''}</div>
+        <div style="font-size:9px;color:${col};margin-top:2px">${dueLabel(d)} · ${d>0?'−':'+'}${Math.abs(d).toFixed(1)}% vs expected</div>
+        <div style="font-size:8.5px;color:var(--muted);margin-top:1px">Decade ${Math.ceil(n/10)*10-9}–${Math.ceil(n/10)*10<=60?Math.ceil(n/10)*10:59} · ${n%2?'Odd':'Even'}</div>
+      </div>
+    </div>
+    <div class="sg g4" style="margin-bottom:10px">
+      ${sbox('Appearances',c+'×','across 1,057 draws')}
+      ${sbox('Expected',EXP.toFixed(1)+'×','per ball baseline')}
+      ${sbox('Status',dueLabel(d),`${d>0?'−':'+'}${Math.abs(d).toFixed(1)}% deviation`,d>10)}
+      ${sbox('Top Pairs',inPairs.length,'in top-20 global list')}
+    </div>
+    <div style="font-family:var(--mono);font-size:8.5px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em">Synchronicity pairs containing ball ${n}</div>
+    ${pairSection}
+    <div style="font-family:var(--mono);font-size:8.5px;color:var(--muted);margin-top:12px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Year trend (2020–2026)</div>
+    ${yrSection}
+  </div>`;
+}
+
+// Magic Combos state
+let mcMode='balanced';
+let mcResults=null;
+
+function renderMagic(){
+  const modes=[
+    {id:'balanced',label:'Balanced',desc:'Equal weight: due + sync + structure'},
+    {id:'due',label:'Due Maximum',desc:'Maximise law of averages — all below expected'},
+    {id:'sync',label:'Sync Maximum',desc:'Anchor on strongest synchronicity pairs'},
+    {id:'terrain',label:'All-Terrain',desc:'Prioritise 6-decade coverage + balance'},
+    {id:'hot',label:'Hot Momentum',desc:'Currently performing above expected'},
+  ];
+
+  const modeBar=`<div class="modes">${modes.map(m=>`<button class="mode-btn${mcMode===m.id?' sel':''}" onclick="selectMcMode('${m.id}')" title="${m.desc}">${m.label}</button>`).join('')}</div>`;
+
+  const genBtn=`<button onclick="runMagic()" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;border-radius:6px;padding:10px 24px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.05em;margin-bottom:14px">⚡ GENERATE MAGIC COMBINATIONS</button>`;
+
+  const resultHtml=mcResults?mcResults.map((r,i)=>{
+    const sorted=[...r.nums].sort((a,b)=>a-b);
+    const sc=scoreCombo(r.nums,mcMode);
+    const scoreColor=sc.score>=80?'#22c55e':sc.score>=65?'#f59e0b':'#94a3b8';
+    const isTop=i===0;
+
+    // Find best internal pair
+    let bestPair=null,bestChi=0;
+    for(let a=0;a<6;a++)for(let b=a+1;b<6;b++){
+      const c=pairCount(sorted[a],sorted[b]);
+      if(c){const chi=(c-E_PAIR)**2/E_PAIR;if(chi>bestChi){bestChi=chi;bestPair=[sorted[a],sorted[b],c];}}
+    }
+
+    const ballDots=sorted.map(n=>{
+      const d=dueOf(n);const col=dueCol(d);
+      return`<div class="blg" style="background:${col}18;border-color:${col}50;color:${col}">${n}</div>`;
+    }).join('');
+
+    return`<div class="mc${isTop?' top':''}">
+      <div class="mc-hd">
+        <div>
+          <div class="mc-name">${isTop?'★ ':''} #${i+1} — ${modes.find(m=>m.id===mcMode)?.label||''} Line</div>
+          <span class="mc-tag" style="color:${isTop?'#a78bfa':'var(--muted)'};border-color:${isTop?'rgba(139,92,246,.3)':'var(--border)'};background:${isTop?'rgba(139,92,246,.08)':'rgba(255,255,255,.02)'}">${sorted.join(' · ')} · sum ${sc.sum}</span>
+        </div>
+        <div style="text-align:right"><div class="mc-score" style="color:${scoreColor}">${sc.score}</div><div style="font-size:7px;color:var(--muted)">/ 100</div></div>
+      </div>
+      <div class="mc-balls">${ballDots}</div>
+      <div class="score-bar"><div class="sb-track"><div class="sb-fill" style="width:${sc.score}%;background:${scoreColor}"></div></div><span style="font-family:var(--mono);font-size:8px;color:${scoreColor}">${sc.score}/100</span></div>
+      <div class="mc-grid">
+        <div class="ms"><div class="mv" style="color:#22c55e">${sc.s1.toFixed(0)}</div><div class="ml">Due /25</div></div>
+        <div class="ms"><div class="mv" style="color:#f97316">${sc.s2.toFixed(0)}</div><div class="ml">Sync /25</div></div>
+        <div class="ms"><div class="mv" style="color:#8b5cf6">${sc.s3}</div><div class="ml">Balance /25</div></div>
+        <div class="ms"><div class="mv" style="color:#60a5fa">${sc.s4}</div><div class="ml">Spread /25</div></div>
+      </div>
+      <div style="display:flex;gap:10px;font-size:8.5px;color:var(--muted);font-family:var(--mono);margin-bottom:8px">
+        <span>Sum: ${sc.sum} ${sc.sum>=165&&sc.sum<=195?'✓':'⚠'}</span>
+        <span>Decades: ${sc.decades}/6</span>
+        <span>O/E: ${sc.odds}/${6-sc.odds}</span>
+        <span>Sync pairs: ${sc.syncPairs}</span>
+      </div>
+      <div class="mc-rat">
+        <strong>Due:</strong> ${sorted.filter(n=>dueOf(n)>5).map(n=>`${n}(−${dueOf(n).toFixed(0)}%)`).join(', ')||'none above threshold'} ·
+        <strong>Hot:</strong> ${sorted.filter(n=>dueOf(n)<-8).map(n=>`${n}(+${(-dueOf(n)).toFixed(0)}%)`).join(', ')||'none'} ·
+        ${bestPair?`<strong>Best sync:</strong> (${bestPair[0]},${bestPair[1]}) × ${bestPair[2]} chi-sq ${((bestPair[2]-E_PAIR)**2/E_PAIR).toFixed(1)} · `:'<strong>No top pair</strong> · '}
+        <strong>Missing decades:</strong> ${[[1,9],[10,19],[20,29],[30,39],[40,49],[50,59]].filter(([lo,hi])=>!sorted.some(n=>n>=lo&&n<=hi)).map(([lo,hi])=>lo+'–'+hi).join(', ')||'none — full coverage'}
+      </div>
+    </div>`;
+  }).join(''):'<div style="padding:14px;text-align:center;font-size:9.5px;color:var(--muted)">Click GENERATE to run the algorithm.</div>';
+
+  return`<div style="background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.2);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:9.5px;color:#c4b5fd;line-height:1.6">
+    <strong>Algorithm:</strong> Scores every combination from a mode-specific pool of top 22 candidate balls (C(22,6) = 74,613 combinations). Each scored on Due + Synchronicity + Balance + Spread. Top 5 returned with a diversity filter (no two results share more than 3 numbers). Ball colour: <span style="color:#22c55e">green = due</span> · <span style="color:#f59e0b">amber = hot</span> · <span style="color:#94a3b8">grey = neutral</span>.
+  </div>`
+  +`<div style="font-family:var(--mono);font-size:8.5px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Mode</div>`
+  +modeBar+genBtn
+  +resultHtml
+  +alrt('#f59e0b','⚠','These combinations are generated from 1,057 draws of historical pattern analysis. Not predictions. Each UK Lottery draw is statistically independent. The law of averages analysis identifies historical patterns — it cannot create future certainty. Play responsibly.');
+}
+
+function selectMcMode(id){
+  mcMode=id;mcResults=null;
+  document.getElementById('panel').innerHTML=renderMagic();
+}
+function runMagic(){
+  document.getElementById('panel').innerHTML=renderMagic().replace('⚡ GENERATE MAGIC COMBINATIONS','⏳ Computing…');
+  setTimeout(()=>{
+    mcResults=genMagicCombos(mcMode);
+    document.getElementById('panel').innerHTML=renderMagic();
+  },30);
+}
+
+function renderProbability(){
+  // Hypergeometric P(X=k) where N=59, K=6, n=6
+  function C(n,k){if(k<0||k>n)return 0;if(k===0||k===n)return 1;let r=1;for(let i=0;i<k;i++)r=r*(n-i)/(i+1);return r;}
+  const C596=C(59,6); // 45,057,474
+  const probs=Array.from({length:7},(_,k)=>C(6,k)*C(53,6-k)/C596);
+
+  const prizes=[
+    {m:6,name:'Jackpot',odds:'1 in 45,057,474',prize:'£varies (~£3M–£25M)',col:'#dc2626'},
+    {m:5,name:'Match 5 + Bonus',odds:'1 in 7,509,579',prize:'£1,000,000',col:'#f97316'},
+    {m:5,name:'Match 5',odds:'1 in 144,415',prize:'£1,750',col:'#f59e0b'},
+    {m:4,name:'Match 4',odds:'1 in 2,180',prize:'~£140',col:'#a78bfa'},
+    {m:3,name:'Match 3',odds:'1 in 97',prize:'£30',col:'#60a5fa'},
+    {m:2,name:'Match 2',odds:'1 in 10.3',prize:'Lucky Dip',col:'#4a6680'},
+  ];
+
+  const drawsPerWeek=2;const costPerTicket=2;
+  const drawsPerYear=drawsPerWeek*52;
+  const costPerYear=drawsPerYear*costPerTicket;
+
+  // Sum distribution — theoretical N(180, SD²) where SD=√1590=39.87
+  const sumMean=180;const sumSD=39.87;
+  function normCDF(x,mean,sd){return 0.5*(1+Math.tanh((x-mean)/(sd*Math.SQRT2*0.8862)));}
+  const userSum=USER.length?USER.reduce((a,b)=>a+b,0):null;
+  const userPct=userSum?Math.round(normCDF(userSum,sumMean,sumSD)*100):null;
+
+  // Sum distribution bars
+  const sumBands=[[60,120],[121,150],[151,165],[166,180],[181,195],[196,210],[211,240],[241,300]];
+  const bandLabels=['<120','121–150','151–165','166–180','181–195','196–210','211–240','>240'];
+  const bandProbs=sumBands.map(([lo,hi])=>(normCDF(hi,sumMean,sumSD)-normCDF(lo,sumMean,sumSD))*100);
+  const maxBandProb=Math.max(...bandProbs);
+
+  const sumBarsHtml=sumBands.map(([lo,hi],i)=>{
+    const pct=bandProbs[i];
+    const inBand=userSum&&userSum>=lo&&userSum<=hi;
+    return`<div style="margin-bottom:5px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+        <span style="font-family:var(--mono);font-size:9px;color:${inBand?'#fca5a5':'var(--sub)'}">${bandLabels[i]} ${inBand?'← YOUR SUM':''}</span>
+        <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">${pct.toFixed(1)}%</span>
+      </div>
+      <div class="br"><div class="bf" style="width:${(pct/maxBandProb)*100}%;background:${inBand?'#dc2626':'#1a6bc4'}"></div></div>
+    </div>`;
+  }).join('');
+
+  const expectedCost=(tier)=>Math.round(1/probs[tier]*costPerTicket);
+
+  return sect('Match Probability Table — Hypergeometric Distribution',
+    `<div style="background:rgba(255,255,255,.015);border-radius:6px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px">`
+    +prizes.map(pr=>`<div class="prob-row ${pr.m>=3?'prize':''}">
+      <div>
+        <div style="font-family:var(--mono);font-size:10.5px;color:${pr.m>=3?pr.col:'#94a3b8'}">${pr.name}</div>
+        <div style="font-size:8px;color:var(--muted);margin-top:1px">Odds: ${pr.odds}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--mono);font-size:10px;color:${pr.col}">${pr.prize}</div>
+        <div style="font-size:7.5px;color:#475569;margin-top:1px">P = ${(pr.m===5&&pr.name.includes('Bonus')?1/7509579:(probs[pr.m]||0)).toExponential(3)}</div>
+      </div>
+    </div>`).join('')
+    +'</div>'
+    +alrt('#60a5fa','◎','Probability is fixed per draw regardless of which numbers you select. The odds never change. Historical frequency analysis cannot alter these mathematical constants.'),
+  '#60a5fa')
+  +sect('Expected Wait & Cost Per Prize Tier',
+    `<div class="sg g2" style="margin-bottom:8px">
+      ${sbox('To Win Match 3',`~${Math.round(1/probs[3])} draws`,`~£${Math.round(1/probs[3]*costPerTicket)} spent · Prize: £30`)}
+      ${sbox('To Win Match 4',`~${Math.round(1/probs[4]).toLocaleString()} draws`,`~£${Math.round(1/probs[4]*costPerTicket).toLocaleString()} spent · Prize: ~£140`,true)}
+      ${sbox('To Win Match 5',`~${Math.round(1/probs[5]).toLocaleString()} draws`,`~${Math.round(1/probs[5]/drawsPerWeek/52).toLocaleString()} years`)}
+      ${sbox('To Win Jackpot',`~45.1M draws`,`Playing 2×/wk: ~433,000 years`,true)}
+    </div>`
+    +alrt('#f59e0b','⚠','At £2/ticket 2×/week (£208/year): expected Match 3 win every ~48 weeks. Every Match 3 costs ~£194 in tickets and returns £30 — net expected loss: £164 per match-3 win. This is the honest mathematics.'),
+  '#f59e0b')
+  +sect('Sum Distribution — Theoretical Draw Profile',
+    `<div style="font-size:9px;color:var(--sub);margin-bottom:10px">The sum of 6 balls drawn from {1...59} follows approximately N(μ=180, σ=39.9). Optimal sum band: 165–195 (covers ~30% of all draws). ${userSum?`Your current sum: <strong style="font-family:var(--mono);color:${userPct<25?'#ef4444':userPct>75?'#f59e0b':'#22c55e'}">${userSum}</strong> — ${userPct}th percentile.`:''}</div>`
+    +sumBarsHtml,
+  '#8b5cf6')
+  +sect('OE Split Distribution',
+    `<div class="sg g3" style="margin-bottom:8px">`
+    +[[3,3,'Most Common','30.8%','#22c55e'],[4,2,'2nd Most','23.4%','#60a5fa'],[2,4,'3rd','19.1%','#a78bfa'],[5,1,'4th','14.2%','#f59e0b'],[1,5,'5th','8.0%','#4a6680'],[6,0,'Rare','2.5%','#1f2937']]
+    .map(([o,e,rank,freq,col])=>`<div class="bx${USER.length&&USER.filter(n=>n%2).length===o?' hl':''}">
+      <div class="bv" style="color:${col}">${o}O/${e}E</div>
+      <div class="bl">${rank} · ${freq}</div>
+      ${USER.length&&USER.filter(n=>n%2).length===o?'<div class="bs">Your split ✓</div>':''}
+    </div>`).join('')
+    +'</div>',
+  '#22c55e');
+}
+
+function renderChecker(){
+  return`<div style="background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:9.5px;color:#a5b4fc;line-height:1.6">
+    Enter up to 3 lines of 6 numbers (1–59, space or comma separated). Scores each line against the 1,057-draw merged dataset across four dimensions: Due Coverage · Synchronicity · Structural Balance · Decade Spread. A law of averages adjustment is applied to the match estimate.
+  </div>
+  <div id="ck-inputs">${[1,2,3].map(i=>`<div class="ck-in"><span class="ck-label">LINE ${i}</span><input class="ck-field" id="ck-${i}" type="text" placeholder="e.g. 7 21 33 42 43 55" onkeydown="if(event.key==='Enter')runChecker()"></div>`).join('')}</div>
+  <button onclick="runChecker()" style="background:var(--blue);color:#fff;border:none;border-radius:6px;padding:9px 24px;font-family:var(--mono);font-size:9px;font-weight:700;cursor:pointer;letter-spacing:.05em;margin:8px 0 14px">ANALYSE →</button>
+  <div id="ck-out"></div>`;
+}
+
+function runChecker(){
+  function parse(s){
+    if(!s.trim())return null;
+    const ns=[...new Set(s.trim().split(/[\s,]+/).map(Number).filter(n=>Number.isInteger(n)&&n>=1&&n<=59))];
+    return ns.length===6?ns:null;
+  }
+  function analyseCard(nums){
+    const sorted=[...nums].sort((a,b)=>a-b);
+    const sc=scoreCombo(nums);
+    const scoreColor=sc.score>=78?'#22c55e':sc.score>=62?'#f59e0b':'#94a3b8';
+    // Due adjustment for match estimate
+    const dueAdj=Math.max(0.8,Math.min(1.4,1+sc.avgDue/100));
+    // Find best pair
+    let bestPair=null,bestChi=0;
+    for(let a=0;a<6;a++)for(let b=a+1;b<6;b++){const c=pairCount(sorted[a],sorted[b]);if(c){const chi=(c-E_PAIR)**2/E_PAIR;if(chi>bestChi){bestChi=chi;bestPair=[sorted[a],sorted[b],c];}}}
+    const sig=bestChi?chiSig(bestChi):{s:'—',l:'no pair',c:'#4a6680'};
+
+    const ballRows=sorted.map(n=>{
+      const d=dueOf(n);const col=dueCol(d);
+      return`<tr><td><span class="ball${isU(n)?' you':''}">${n}</span></td><td style="font-family:var(--mono)">${FREQ[n]}×</td><td style="font-family:var(--mono);font-size:9px;color:${col}">${d>0?'−':'+'}${Math.abs(d).toFixed(1)}%</td><td><span style="font-size:8px;color:${col};font-family:var(--mono)">${dueLabel(d)}</span></td></tr>`;
+    }).join('');
+
+    const missingDecs=[[1,9],[10,19],[20,29],[30,39],[40,49],[50,59]].filter(([lo,hi])=>!sorted.some(n=>n>=lo&&n<=hi)).map(([lo,hi])=>lo+'–'+hi);
+
+    return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 13px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+        <div>
+          <div style="font-family:var(--mono);font-size:13px;font-weight:700">${sorted.join(' · ')}</div>
+          <div style="font-size:8.5px;color:var(--muted);margin-top:2px">Sum: ${sc.sum} ${sc.sum>=165&&sc.sum<=195?'✓ in target':'⚠'} · ${sc.odds}O/${6-sc.odds}E · ${sc.decades}/6 decades</div>
+        </div>
+        <div style="text-align:right"><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:${scoreColor}">${sc.score}</div><div style="font-size:7.5px;color:var(--muted)">/100</div></div>
+      </div>
+      <div style="height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:10px"><div style="width:${sc.score}%;height:100%;background:${scoreColor};border-radius:2px"></div></div>
+      <div class="mc-grid" style="margin-bottom:10px">
+        <div class="ms"><div class="mv" style="color:#22c55e">${sc.s1.toFixed(0)}</div><div class="ml">Due /25</div></div>
+        <div class="ms"><div class="mv" style="color:#f97316">${sc.s2.toFixed(0)}</div><div class="ml">Sync /25</div></div>
+        <div class="ms"><div class="mv" style="color:#8b5cf6">${sc.s3}</div><div class="ml">Balance /25</div></div>
+        <div class="ms"><div class="mv" style="color:#60a5fa">${sc.s4}</div><div class="ml">Spread /25</div></div>
+      </div>
+      <table class="tbl" style="margin-bottom:10px"><thead><tr><th>Ball</th><th>Draws</th><th>Deviation</th><th>Status</th></tr></thead><tbody>${ballRows}</tbody></table>
+      <div class="sg g2" style="margin-bottom:8px">
+        <div class="bx"><div style="font-size:7.5px;color:var(--muted);margin-bottom:3px">BEST SYNC PAIR</div>${bestPair?`<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:#f97316">(${bestPair[0]}, ${bestPair[1]}) × ${bestPair[2]}</div><div style="font-size:8px;color:${sig.c};margin-top:1px">χ² ${bestChi.toFixed(2)} · ${sig.l}</div>`:'<div style="font-family:var(--mono);font-size:10px;color:var(--muted)">No top-20 pair</div>'}</div>
+        <div class="bx${missingDecs.length>2?' hl':''}"><div style="font-size:7.5px;color:var(--muted);margin-bottom:3px">DECADE GAPS</div><div style="font-family:var(--mono);font-size:10px;color:${missingDecs.length?'#f59e0b':'#22c55e'}">${missingDecs.length?missingDecs.join(', '):'None — full coverage ✓'}</div></div>
+      </div>
+      <div style="background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:5px;padding:8px 10px">
+        <div style="font-size:7.5px;color:#a5b4fc;font-family:var(--mono);margin-bottom:5px">WIN-RATIO ESTIMATE · Law of averages factor: ×${dueAdj.toFixed(2)}</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <span><span style="font-family:var(--mono);color:#e2e8f0">Match 3:</span> <span style="font-family:var(--mono);color:#fbbf24">1 in ${Math.round(97/dueAdj)}</span> <span style="font-size:8px;color:#475569">(base 1:97)</span></span>
+          <span><span style="font-family:var(--mono);color:#e2e8f0">Match 4:</span> <span style="font-family:var(--mono);color:#f97316">1 in ${Math.round(2180/dueAdj).toLocaleString()}</span></span>
+          <span><span style="font-family:var(--mono);color:#e2e8f0">Due adj:</span> <span style="font-family:var(--mono);color:#22c55e">+${((dueAdj-1)*100).toFixed(0)}%</span></span>
+        </div>
+        <div style="font-size:7.5px;color:#475569;margin-top:5px">Due adjustment is analytical only. Each draw is statistically independent.</div>
+      </div>
+    </div>`;
+  }
+
+  const out=document.getElementById('ck-out');
+  const lines=[];
+  for(let i=1;i<=3;i++){
+    const v=document.getElementById('ck-'+i)?.value||'';
+    if(v.trim()){
+      const nums=parse(v);
+      lines.push(nums?{nums,label:`Line ${i}`}:{error:`Line ${i}: need exactly 6 unique numbers 1–59`,label:`Line ${i}`});
+    }
+  }
+  if(!lines.length){out.innerHTML='<div style="color:var(--muted);font-size:9.5px">Enter at least one line above.</div>';return;}
+  out.innerHTML=lines.map(l=>l.error?`<div style="background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);border-radius:6px;padding:9px;font-size:9px;color:#f87171;margin-bottom:8px">${l.error}</div>`:analyseCard(l.nums)).join('');
+}
+
+function renderYourNums(){
+  if(!USER.length)return`<div style="text-align:center;padding:40px 20px">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px">No numbers set</div>
+    <div style="font-size:9.5px;color:var(--muted)">Enter your 6 numbers in the bar above the tabs and click SET →</div>
+  </div>`;
+
+  const sorted=[...USER].sort((a,b)=>a-b);
+  const sum=USER.reduce((a,b)=>a+b,0);
+  const odds=USER.filter(n=>n%2).length;
+  const decades=new Set(USER.map(n=>Math.ceil(n/10)));
+  const sc=scoreCombo(USER);
+  const scoreColor=sc.score>=78?'#22c55e':sc.score>=62?'#f59e0b':'#94a3b8';
+
+  const bars=sorted.map(n=>{
+    const c=FREQ[n];const pct=c/DRAWS*100;const expPct=PER/BALLS*100;const d=pct-expPct;
+    const dd=dueOf(n);const col=dueCol(dd);
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+        <span style="font-family:var(--mono);font-size:11px">Ball ${n} <span class="pill" style="color:${col};border-color:${col}30;background:${col}0d;font-size:7px">${dueLabel(dd)}</span></span>
+        <span style="font-family:var(--mono);font-size:10px;color:${d>=0?'#22c55e':'#ef4444'}">${c}× (${pct.toFixed(1)}%) ${d>=0?'▲':'▼'}${Math.abs(d).toFixed(1)}pp</span>
+      </div>
+      <div class="br"><div class="bf" style="width:${(c/MAXF)*100}%;background:${d>=0?'linear-gradient(90deg,#22c55e,#4ade80)':'linear-gradient(90deg,#ef4444,#f87171)'}"></div></div>
+      <div style="font-size:7.5px;color:var(--muted);margin-top:1px">Law of averages: ${dd>0?'−':'+'}${Math.abs(dd).toFixed(1)}% vs expected ${EXP.toFixed(1)}×</div>
+    </div>`;
+  }).join('');
+
+  const myPairs=TOP_PAIRS.filter(([p])=>isU(p[0])||isU(p[1]));
+  const myInt=myPairs.filter(([p])=>isU(p[0])&&isU(p[1]));
+
+  const pairRows=myPairs.slice(0,8).map(([pair,count])=>{
+    const chi=(count-E_PAIR)**2/E_PAIR;const sig=chiSig(chi);
+    const both=isU(pair[0])&&isU(pair[1]);
+    return`<tr style="${both?'background:rgba(139,92,246,.05)':''}">
+      <td>${bsm(pair[0])} ${bsm(pair[1])} ${both?'<span style="font-size:7px;color:#a78bfa">★ both yours</span>':''}</td>
+      <td style="font-family:var(--mono)">${count}×</td>
+      <td><span class="pill" style="color:${sig.c};border-color:${sig.c}30;background:${sig.c}0d">${sig.s} ${sig.l}</span></td>
+    </tr>`;
+  }).join('');
+
+  const decGrid=[[1,9],[10,19],[20,29],[30,39],[40,49],[50,59]].map(([lo,hi])=>{
+    const balls=sorted.filter(n=>n>=lo&&n<=hi);
+    const has=balls.length>0;
+    return`<div class="dcl${!has?' gap':''}"><div class="dr">${lo}–${hi}</div><div class="dv" style="color:${!has?'#ef4444':'var(--text)'}">${has?balls.join(','):'NONE'}</div></div>`;
+  }).join('');
+
+  const missingDecs=[[1,9],[10,19],[20,29],[30,39],[40,49],[50,59]].filter(([lo,hi])=>!sorted.some(n=>n>=lo&&n<=hi));
+
+  return sect(`Your ${USER.length} Numbers — Full Analysis`,
+    `<div class="sg g4" style="margin-bottom:8px">
+      ${sbox('Line Score',`${sc.score} / 100`,`${sc.score>=78?'Strong':sc.score>=62?'Solid':'Weak'} analytical rating`)}
+      ${sbox('Sum',sum,sum>=165&&sum<=195?'In target ✓':sum>=150&&sum<=210?'Near target ⚠':'Outside target ✗',sum<150||sum>210)}
+      ${sbox('Odd / Even',`${odds}O / ${6-odds}E`,odds===3?'3/3 optimal':odds===4?'4/2 good':'Review balance')}
+      ${sbox('Decades',`${decades.size} / 6`,decades.size===6?'Full coverage ✓':'Some gaps',decades.size<4)}
+    </div>
+    <div style="height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:12px"><div style="width:${sc.score}%;height:100%;background:${scoreColor};border-radius:2px"></div></div>
+    ${bars}`)
+  +sect('Synchronicity — Global Pairs Containing Your Numbers',
+    myPairs.length?
+    `<table class="tbl"><thead><tr><th>Pair</th><th>Co-Appears</th><th>Significance</th></tr></thead><tbody>${pairRows}</tbody></table>`
+    +alrt('#a78bfa','★',myInt.length?`${myInt.length} pair(s) where BOTH your numbers appear together: ${myInt.map(([p,c])=>`(${p[0]},${p[1]}) ${c}×`).join(' · ')}.`:'No top-20 global pair has both your numbers together — your numbers are not forming known dataset synchronicities.')
+    :'<div style="padding:10px;font-size:9.5px;color:var(--muted)">None of your numbers feature in the top 20 global pairs.</div>',
+  '#a78bfa')
+  +sect('Decade Coverage',`<div class="dc">${decGrid}</div>`
+    +(missingDecs.length?alrt('#ef4444','⬡',`Missing: ${missingDecs.map(([lo,hi])=>lo+'–'+hi).join(', ')}. Each gap is a range you cannot fully match.`):alrt('#22c55e','✓','Full 6-decade coverage — optimal structural spread.')),
+  '#ef4444')
+  +sect('Match Odds (Fixed — Applies to All Lines)',
+    `<div style="background:rgba(255,255,255,.015);border-radius:6px;border:1px solid var(--border);overflow:hidden">`
+    +[['Jackpot','1 in 45,057,474','#dc2626'],['Match 5','1 in 144,415','#f59e0b'],['Match 4','1 in 2,180','#a78bfa'],['Match 3','1 in 97','#60a5fa'],['Match 2','1 in 10.3','#4a6680']].map(([n,o,c])=>`<div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.03)"><span style="font-family:var(--mono);font-size:10px;color:#94a3b8">${n}</span><span style="font-family:var(--mono);font-size:10px;color:${c}">${o}</span></div>`).join('')
+    +'</div>',
+  '#4a6680');
+}
+
+function renderVerdict(){
+  const sorted=Object.entries(FREQ).sort((a,b)=>b[1]-a[1]);
+  const hottest=sorted[0];const coldest=[...sorted].sort((a,b)=>a[1]-b[1])[0];
+  const hotDec=[[1,9,950],[10,19,1080],[20,29,1037],[30,39,1130],[40,49,1053],[50,59,1092]];
+  const hottestDec=hotDec.sort((a,b)=>b[2]-a[2])[0];
+  const coldestDec=hotDec.sort((a,b)=>a[2]-b[2])[0];
+
+  const items=[
+    {i:'★',t:`Ball ${hottest[0]} is the long-run anchor`,d:`${hottest[1]}× across 1,057 draws — +17.2% above expected. Ball 37's dominance persists across the full Oct 2015–2026 merged dataset. Confirmed hot in both eras. It sits in 3 of the top 20 global pairs.`},
+    {i:'↓',t:`Ball ${coldest[0]} is the most-due number in the dataset`,d:`${coldest[1]}× across 1,057 draws — 19.1% below expected. Ball 21 has a deficit of 20.5 appearances. The law of averages interpretation: if the system is fair, this ball has the most "debt" to recover. It is absent from all recommended lines in the 6-year analysis but prominent in the merged-data lines.`},
+    {i:'⊕',t:'30–39 is the persistently overperforming decade',d:`1,130 appearances vs expected 1,075 — a surplus of 55 across 1,057 draws. The hottest individual balls (37, 36, 34, 39) all live here. This decade's dominance is structural, not statistical noise.`},
+    {i:'⬡',t:'20–29 is the most underperforming decade',d:`1,037 appearances vs expected 1,075 — deficit of 38. Ball 21 is the main driver. If law of averages applies, this decade as a whole is "due." Your lines covering 20–29 have an analytical edge from this perspective.`},
+    {i:'≡',t:'3/3 odd-even remains the optimal split',d:'30.8% of all draws across the dataset use the 3O/3E configuration — the most common single split. 4/2 is second at 23.4%. A 3/3 or 4/2 split aligns with historical structure. Avoid 5/1 or 6/0.'},
+    {i:'◉',t:'Sum target: 165–195',d:'Theoretical mean draw sum is 180 (exact, from N(N+1)/2 divided by picks). SD ≈ 39.9. The 165–195 band covers approximately 30% of all historical draws — the highest-density region. A sum below 150 or above 210 is statistically unusual.'},
+    {i:'▸',t:'Synchronicity pairs are real and significant',d:'All top 20 pairs beat p<0.05 significance. (37,42) and (42,59) lead at 15× vs 5.4 expected (p<0.001). Whether this is mechanical bias or statistical noise in 616 draws is debatable. But it is real in the data and should anchor any analytically-built line.'},
+    {i:'◎',t:'Magic Combos engine — what it does and does not do',d:'The algorithm scores C(22,6) ≈ 74,613 combinations per mode across four dimensions. It finds the historically best-structured combination — not the winning number. Each draw is independent. The algorithm maximises your structural alignment with historical patterns. Nothing more.'},
+    {i:'▲',t:'The core honest insight',d:'Expected return on a £2 UK Lottery ticket is approximately −50p per play (long-run house edge ~25%). Match-3 wins every ~96 draws at a cost of ~£192 per win against a £30 prize. The numbers do not change this. Analysis can optimise structure — it cannot beat probability.'},
+  ];
+  return items.map(f=>`<div class="vi"><span class="vic">${f.i}</span><div><div class="vit">${f.t}</div><div class="vib">${f.d}</div></div></div>`).join('');
+}
+
+// ── MY NUMBERS ────────────────────────────────────────────────────────────────
+function loadUser(){
+  try{const s=localStorage.getItem('lottogenx_user');if(s){const n=JSON.parse(s);if(Array.isArray(n)&&n.length===6&&n.every(x=>x>=1&&x<=59)){USER=n;}}}catch(e){}
+}
+function updateNsDisplay(){
+  const el=document.getElementById('ns-balls');if(!el)return;
+  if(USER.length){
+    const s=[...USER].sort((a,b)=>a-b);
+    const sum=USER.reduce((a,b)=>a+b,0);
+    const odds=USER.filter(n=>n%2).length;
+    el.innerHTML=s.map(n=>`<div class="ns-ball">${n}</div>`).join('')
+      +`<span style="font-family:var(--mono);font-size:8.5px;color:var(--muted);margin-left:5px">sum ${sum} · ${odds}O/${6-odds}E</span>`;
+    const inp=document.getElementById('ns-in');if(inp)inp.value=s.join(' ');
+  }else{
+    el.innerHTML='<span style="font-size:8.5px;color:var(--muted);font-family:var(--mono)">No numbers set</span>';
+  }
+}
+function setNums(){
+  const inp=document.getElementById('ns-in');if(!inp)return;
+  const raw=inp.value.trim();
+  if(!raw){USER=[];localStorage.removeItem('lottogenx_user');updateNsDisplay();document.getElementById('panel').innerHTML=RENDERS[current]();return;}
+  const parsed=[...new Set(raw.split(/[\s,]+/).map(Number).filter(n=>Number.isInteger(n)&&n>=1&&n<=59))];
+  if(parsed.length!==6){
+    inp.style.borderColor='#ef4444';
+    setTimeout(()=>inp.style.borderColor='var(--border)',1500);
+    const el=document.getElementById('ns-balls');
+    if(el)el.innerHTML=`<span style="font-size:8.5px;color:#f87171;font-family:var(--mono)">${parsed.length<6?`Need 6 unique numbers — got ${parsed.length}`:`Remove duplicates — got ${parsed.length}`}</span>`;
+    return;
+  }
+  USER=parsed;
+  localStorage.setItem('lottogenx_user',JSON.stringify(USER));
+  inp.style.borderColor='#22c55e';
+  setTimeout(()=>inp.style.borderColor='var(--border)',1000);
+  updateNsDisplay();
+  document.getElementById('panel').innerHTML=RENDERS[current]();
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+const TABS=[
+  {id:'overview',l:'Overview'},{id:'heatmap',l:'Heatmap'},{id:'due',l:'Due Analysis'},
+  {id:'pairs',l:'Pairs & Sync'},{id:'spotlight',l:'Ball Spotlight'},
+  {id:'magic',l:'⚡ Magic Combos'},{id:'probability',l:'Probability'},
+  {id:'checker',l:'Checker'},{id:'your',l:'My Numbers'},{id:'verdict',l:'Verdict'}
+];
+const RENDERS={overview:renderOverview,heatmap:renderHeatmap,due:renderDue,pairs:renderPairs,spotlight:renderSpotlight,magic:renderMagic,probability:renderProbability,checker:renderChecker,your:renderYourNums,verdict:renderVerdict};
+let current='overview';
+
+function switchTab(id){
+  current=id;mcResults=null;
+  document.querySelectorAll('.tb').forEach(b=>b.className='tb'+(b.dataset.id===id?' on':''));
+  document.getElementById('panel').innerHTML=RENDERS[id]();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadUser();
+document.getElementById('tabs').innerHTML=TABS.map(t=>`<button class="tb${t.id===current?' on':''}" data-id="${t.id}" onclick="switchTab('${t.id}')">${t.l}</button>`).join('');
+updateNsDisplay();
+document.getElementById('panel').innerHTML=RENDERS[current]();
+</script>
+</body>
+</html>

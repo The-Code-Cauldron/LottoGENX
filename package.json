@@ -1,0 +1,12 @@
+{
+  "name": "lottogenx",
+  "version": "1.0.0",
+  "description": "UK Lotto Intelligence Engine — 1,057 draw merged dataset",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
